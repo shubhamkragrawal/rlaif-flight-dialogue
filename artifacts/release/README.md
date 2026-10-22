@@ -33,3 +33,18 @@ or cloud-ledger/training records appear among staged paths.
 This gate does not constitute an actual release pass until real supplied
 evidence is evaluated. Synthetic fixtures in the unit tests exercise gate
 acceptance and tamper rejection only.
+
+## Git commit provenance
+
+The checked-in final matrix and evidence bundle pin artifact, controller,
+corpus, adapter, and base-model hashes, but they do not record a Git commit SHA.
+Commit `bf8049c7dbfdb71887b0496bd7bcc939e38bc894` is the earliest repository
+snapshot containing that matrix, bundle, and passing gate. Its controller
+matches the matrix-pinned SHA-256, and a fresh verification of the existing
+evidence at that detached source commit passed on October 22, 2026.
+
+That establishes a gate-reverified source snapshot with historical evaluation
+evidence. It does not establish an independently recorded evaluation-time Git
+checkout or a fresh model-matrix run. A release must preserve that distinction;
+an arbitrary later documentation commit must not be labeled the historical
+evaluated commit.

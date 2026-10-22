@@ -1,17 +1,105 @@
-# RLAIF flight-booking agent
+# RLAIF Flight Dialogue Alignment & Safety System
 
-This repository contains a completed local RLAIF flight-dialogue application,
-its evidence-backed release artifacts, and preserved historical training
-experiments. The supported interactive application is under `local_app/`; the
-reproducible training/evaluation package is under `rebuild/rlaif/`.
+Flight-dialogue models can invent inventory or claim a booking they did not
+execute. This project trains and compares Qwen 2.5 3B alignment policies, then
+places response generation inside a deterministic controller that owns simulator
+state, search, holds, and bookings. The release includes shared evaluations,
+output validation, safe fallbacks, and hash-pinned evidence. The supported local
+application is under `local_app/`; training and evaluation are under
+`rebuild/rlaif/`.
 
-Start here:
+**Ownership:** the current Qwen 2.5 3B rebuild is solo work by Shubham Kumar
+Agrawal; its historical Mistral-7B predecessor was a three-person team project.
 
-- [RLAIF_2_RELEASE_REPORT.md](RLAIF_2_RELEASE_REPORT.md) for final local results.
-- [OPERATIONS.md](OPERATIONS.md) for startup, testing, and release verification.
-- [PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md) for architecture and historical results.
-- [LOCAL_CONVERSATION_SYSTEM_SPEC.md](LOCAL_CONVERSATION_SYSTEM_SPEC.md) for the
-  implemented local-system contract.
+## Architecture
+
+![Training policies and deterministic local flight-dialogue runtime](figures/system_architecture.svg)
+
+## Results: two evaluation layers
+
+| Layer | Cohort | Observed result | Interpretation |
+|---|---|---|---|
+| Policy-only | Same 50 held-out scenarios per policy | Base **16%**, SFT **26%**, DPO **34%**, PPO checkpoint 19 **38%**, adaptive PPO **34%** task success | Model-policy results from historical summary evidence; 95% intervals overlap and judge metrics are mixed. |
+| Integrated local system | Same 50 scenarios × four adapters = **200 scenario runs** | **100% completion**, valid search/booking transitions, valid displayed outputs, and grounded-entity precision; **zero** unsupported transaction claims and displayed repetition | Includes deterministic validation and safe fallback. This is system reliability, not standalone model accuracy. |
+| Release checks | Local application and rebuild suites | **340 + 85 = 425 automated tests** in recorded closeout evidence; release gate passed | Evidence is linked below; a fresh test run does not rerun model training or the integrated model matrix. |
+
+Preference generation retained **386 validated pairs from 700 scenarios**.
+DPO had the lowest integrated fallback rate (**7.5%**). See the
+[policy results](rebuild/cloud/FINAL_RESULTS.md) and
+[integrated release report](RLAIF_2_RELEASE_REPORT.md) for denominators,
+confidence intervals, and per-adapter measurements.
+
+## Short local demo
+
+After the quickstart below, open `http://127.0.0.1:8000/` and use scenario 0:
+
+1. `Find a flight from IAD to LAS under $100`
+2. `My name is Amy Gonzalez`
+3. `Book flight 9999` — the controller rejects an ID outside the current results.
+4. `Book flight 1027` — the controller confirms a simulated booking.
+
+This demo uses the deterministic local path and no external services. To compare
+adapter phrasing, model mode requires the pinned model and adapter files already
+present locally; see [runtime details](#local-conversation-runtime).
+
+## Quick start
+
+Clone the canonical repository and start the dependency-free deterministic path
+with Python 3.11 or newer:
+
+```sh
+git clone https://github.com/shubhamkragrawal/rlaif-flight-dialogue.git
+cd rlaif-flight-dialogue
+python3 -m venv .venv
+.venv/bin/python -m local_app.server
+```
+
+Open `http://127.0.0.1:8000/`. The server is localhost-only and every booking is
+simulated. Optional local-model dependencies are pinned in
+`requirements-local.txt`; they are not needed for this quickstart. Run all
+regression entry point with Python 3.11+ and Node.js 18+:
+
+```sh
+./scripts/full-local-regression
+```
+
+The recorded **425-test** closeout ran in the original complete workspace. Some
+tests still expect the original `airdialogue_sampled_5k.jsonl` corpus and archived
+cloud job JSON files that are absent from the public checkout; a fresh clone
+cannot reproduce the complete suite without those inputs. The packaged 50-scenario
+corpus supports the quickstart and simulator demo. The release gate below verifies
+the recorded evidence and hashes; it does not rerun these tests.
+
+## Evidence and release verification
+
+- [Final release report](RLAIF_2_RELEASE_REPORT.md): model/system boundaries,
+  results, and limitations.
+- [Integrated 50-by-4 matrix](artifacts/matrix/releases/v1/release-v1.json) and
+  [identity/checksum manifest](artifacts/matrix/releases/v1/manifest-v1.json).
+- [Six-check evidence bundle](artifacts/release/evidence-v1-20261012T005310274515Z/evidence-v1.json)
+  and [passing release gate](artifacts/release/gate-v1/release-gate-v1.json).
+- [Local operations](OPERATIONS.md): verify the recorded hashes and reproduce
+  the supported checks; [release contract](artifacts/release/README.md).
+- [Project overview](PROJECT_OVERVIEW.md) and
+  [implemented local-system contract](LOCAL_CONVERSATION_SYSTEM_SPEC.md).
+
+## Limitations
+
+- **38% is policy-only task success; 100% is integrated system completion and
+  validity after validation/fallback.** Neither is evidence of airline production
+  operation, live inventory access, or real transactions.
+- Historical policy evidence is summary-level: raw scenario outputs and verified
+  byte-level links from the historical evaluated policies to the local adapters
+  are unavailable. The integrated matrix has its own local adapter/model hashes.
+- The 50-scenario policy comparison is small, confidence intervals overlap, and
+  judge scores/booking metrics do not support a blanket quality-improvement claim.
+- Hash-pinned release artifacts identify model, adapter, corpus, and controller
+  bytes. They do not record a Git commit SHA; see the release contract before
+  treating a tag as proof of the exact evaluation-time checkout.
+- Model files are not bundled or downloaded at startup. The default demo is
+  fully usable without a model or cloud account.
+
+## Repository guide
 
 The historical/rebuild package contains:
 
@@ -37,27 +125,6 @@ the corpus, split file, and SFT examples. Training and evaluation refuse changed
 corpus/split inputs. Historical runs did not pin a Hugging Face model commit;
 new closeout preparation requires `--model-revision` and records the resolved
 revision when the model loads. See [REPRODUCIBILITY.md](rebuild/cloud/REPRODUCIBILITY.md).
-
-## Quick start
-
-From `RLAIF/`, create the project-local environment and run the deterministic
-application:
-
-```sh
-python3.12 -m venv .venv
-.venv/bin/pip install -r requirements-local.txt
-.venv/bin/python -m local_app.server
-```
-
-Open `http://127.0.0.1:8000/`. The server is localhost-only and every booking is
-simulated. Run all supported regression checks with:
-
-```sh
-./scripts/full-local-regression
-```
-
-The final closeout run passed 340 local tests and 85 rebuild tests. Browser
-behavior tests require Node.js 18 or newer; no npm dependencies are needed.
 
 ## Historical cloud jobs
 

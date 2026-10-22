@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="510" viewBox="0 0 1120 510" role="img" aria-labelledby="title desc">
+  <title id="title">RLAIF training and deterministic dialogue runtime</title>
+  <desc id="desc">Immutable AirDialogue splits feed LoRA SFT and preference-ranked DPO and PPO comparison. Each policy is evaluated on the same fifty held-out scenarios. At runtime the deterministic controller controls simulated inventory and transactions, validates generated responses, and falls back safely.</desc>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#73c9aa"/></marker></defs>
+  <rect width="1120" height="510" rx="20" fill="#0d1916"/>
+  <g font-family="Arial, sans-serif" fill="#eff7f2">
+    <text x="35" y="43" font-size="24" font-weight="700">Train policies. Evaluate them. Control transactions in code.</text>
+    <text x="35" y="79" font-size="15" fill="#a9b9b0">Training and policy comparison</text>
+    <g fill="#162d25" stroke="#73c9aa"><rect x="35" y="100" width="210" height="100" rx="12"/><rect x="280" y="100" width="200" height="100" rx="12"/><rect x="515" y="100" width="250" height="100" rx="12"/><rect x="800" y="100" width="285" height="100" rx="12"/></g>
+    <g text-anchor="middle" font-size="17"><text x="140" y="133">AirDialogue</text><text x="140" y="161">immutable data splits</text><text x="380" y="133">Qwen 2.5 3B</text><text x="380" y="161">LoRA SFT</text><text x="640" y="128">DPO / bounded PPO</text><text x="640" y="154">adaptive PPO</text><text x="640" y="180" font-size="14">Gemini-ranked preference pairs</text><text x="943" y="133">Shared policy evaluation</text><text x="943" y="161">50 held-out scenarios</text></g>
+    <g stroke="#73c9aa" stroke-width="2" marker-end="url(#arrow)"><path d="M245 150H273"/><path d="M480 150H508"/><path d="M765 150H793"/></g>
+    <text x="35" y="249" font-size="15" fill="#a9b9b0">Local integrated runtime — same 50 scenarios across four adapters</text>
+    <g fill="#142735" stroke="#79bdec"><rect x="35" y="275" width="210" height="125" rx="12"/><rect x="280" y="275" width="250" height="125" rx="12"/><rect x="565" y="275" width="235" height="125" rx="12"/><rect x="835" y="275" width="250" height="125" rx="12"/></g>
+    <g text-anchor="middle" font-size="17"><text x="140" y="311">User request</text><text x="140" y="340">typed constraints</text><text x="140" y="369" font-size="14">local flight corpus</text><text x="405" y="309">Deterministic controller</text><text x="405" y="338">search · hold · book</text><text x="405" y="368" font-size="14">authoritative simulator state</text><text x="683" y="310">Selected adapter</text><text x="683" y="340">grounded phrasing</text><text x="683" y="369" font-size="14">no transaction authority</text><text x="960" y="310">Validate output</text><text x="960" y="340">or safe fallback</text><text x="960" y="369" font-size="14">audit + release evidence</text></g>
+    <g stroke="#73c9aa" stroke-width="2" marker-end="url(#arrow)"><path d="M245 338H273"/><path d="M530 338H558"/><path d="M800 338H828"/></g>
+    <text x="35" y="452" font-size="17" fill="#8af0bd">Policy success: 16% → 38% best observed</text>
+    <text x="35" y="480" font-size="15" fill="#a9b9b0">Integrated completion/validity: 100% with deterministic validation and fallback — a separate measurement.</text>
+  </g>
+</svg>
